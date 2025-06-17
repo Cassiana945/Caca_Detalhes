@@ -9,6 +9,7 @@ import android.graphics.PointF;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.view.MotionEvent;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -75,12 +76,17 @@ public class DesafioActivity extends AppCompatActivity {
             return true;
         });
 
-        btnTirarFoto.setOnClickListener(v ->
-                startActivity(new Intent(DesafioActivity.this, MainActivity.class))
-        );
+        btnTirarFoto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(DesafioActivity.this, MainActivity.class));
+                overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+            }
+        });
+        
     }
 
-    private void drawFeedback(Canvas canvas, float x, float y, boolean acerto) {
+    private void drawFeedback (Canvas canvas,float x, float y, boolean acerto){
         Paint paint = new Paint();
         paint.setColor(acerto ? Color.GREEN : Color.BLUE);
         canvas.drawCircle(x, y, 15, paint);
