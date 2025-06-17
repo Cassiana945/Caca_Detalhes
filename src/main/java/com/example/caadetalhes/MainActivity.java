@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
             Bitmap photo = (Bitmap) data.getExtras().get("data");
             ImageUtils.saveImage(photo, getFilesDir() + "/image.jpg");
             startActivity(new Intent(this, MarcaActivity.class));
+             overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
