@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -20,7 +21,6 @@ public class MarcaActivity extends AppCompatActivity {
     Bitmap imagemOriginal, imagemComMarcadores;
     ImageView imagem, btnDesafiar;
     Canvas canvas;
-    Bitmap marcadorBitmap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,26 +34,34 @@ public class MarcaActivity extends AppCompatActivity {
         imagemComMarcadores = imagemOriginal.copy(Bitmap.Config.ARGB_8888, true);
         canvas = new Canvas(imagemComMarcadores);
 
-        marcadorBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.x);
-
         imagem.setImageBitmap(imagemComMarcadores);
 
         imagem.setOnTouchListener((v, event) -> {
             if (event.getAction() == MotionEvent.ACTION_DOWN && pontos.size() < 5) {
-                float x = event.getX();
-                float y = event.getY();
-                pontos.add(new PointF(x, y));
-                drawMarker(x, y);
-                v.performClick();
 
-                if (pontos.size() == 5) {
-                    ImageUtils.savePoints(pontos, getFilesDir() + "/pontos.json");
-                    ImageUtils.saveImage(imagemComMarcadores, getFilesDir() + "/marcada.jpg");
+                float[] point = new float[]{event.getX(), event.getY()};
+                ImageView imageView = (ImageView) v;
+                Matrix inverseMatrix = new Matrix();
+                imageView.getImageMatrix().invert(inverseMatrix);
+                inverseMatrix.mapPoints(point);
+
+                float x = point[0];
+                float y = point[1];
+
+
+                if (x >= 0 && x < imagemOriginal.getWidth() && y >= 0 && y < imagemOriginal.getHeight()) {
+                    pontos.add(new PointF(x, y));
+                    desenharX(x, y);
+                    v.performClick();
+
+                    if (pontos.size() == 5) {
+                        ImageUtils.savePoints(pontos, getFilesDir() + "/pontos.json");
+                        ImageUtils.saveImage(imagemComMarcadores, getFilesDir() + "/marcada.jpg");
+                    }
                 }
             }
             return true;
         });
-
         btnDesafiar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -64,10 +72,15 @@ public class MarcaActivity extends AppCompatActivity {
     }
 
 
-    private void drawMarker(float x, float y) {
-        float markerX = x - marcadorBitmap.getWidth() / 2f;
-        float markerY = y - marcadorBitmap.getHeight() / 2f;
-        canvas.drawBitmap(marcadorBitmap, markerX, markerY, null);
+    private void desenharX(float x, float y) {
+        Bitmap originalX = BitmapFactory.decodeResource(getResources(), R.drawable.x);
+        int novaLargura = 30;
+        int novaAltura = 30;
+        Bitmap marcadorBitmap = Bitmap.createScaledBitmap(originalX, novaLargura, novaAltura, true);
+
+        float marcaX = x - marcadorBitmap.getWidth() / 2f;
+        float marcaY = y - marcadorBitmap.getHeight() / 2f;
+        canvas.drawBitmap(marcadorBitmap, marcaX, marcaY, null);
         imagem.invalidate();
     }
 }
